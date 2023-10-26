@@ -65,7 +65,7 @@ class Backup:
         for i in tqdm(range(self.count_photo_profile), colour='#98FB98'):
 
             for j in self.result["response"]["items"][i]["sizes"]:
-                if j["type"] == "z":
+                if j["type"] == "w":
                     self.name_photo["size"] = j["type"]
                     self.url_photo = j["url"]
                     self.lst_likes.append(self.result["response"]["items"][i]["likes"]["count"])
