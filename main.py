@@ -17,6 +17,8 @@ class Backup:
         self.lst_likes = []
         self.url_photo = ''
         self.result = None
+        self.max_size_photo = 0
+        self.number_photo = 0
 
     def get_information_on_photos_vk(self):
         base_url = "https://api.vk.com/method/photos.get"
@@ -56,7 +58,23 @@ class Backup:
             info_photo_result = json.loads("[]")
             json.dump(info_photo_result, file, indent=4, ensure_ascii=False)
 
+    def max_size(self):
+        self.max_size_photo = 0
+        for size in self.result["response"]["items"][self.number_photo]["sizes"]:
+            if size["height"] > self.max_size_photo:
+                self.max_size_photo = size["height"]
+        self.number_photo += 1
+
+    def completion_json_file(self):
+        with open("info_photo.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+            data.append({"file_name": f"{self.name_photo['file_name']}.jpg", "size": self.name_photo["size"]})
+
+            with open("info_photo.json", "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+
     def backup_copy(self):
+
         if self.count_photo_profile >= 5:
             self.count_photo_profile = 5
         else:
@@ -64,8 +82,10 @@ class Backup:
 
         for i in tqdm(range(self.count_photo_profile), colour='#98FB98'):
 
+            self.max_size()
+
             for j in self.result["response"]["items"][i]["sizes"]:
-                if j["type"] == "w":
+                if j["height"] == self.max_size_photo:
                     self.name_photo["size"] = j["type"]
                     self.url_photo = j["url"]
                     self.lst_likes.append(self.result["response"]["items"][i]["likes"]["count"])
@@ -84,13 +104,7 @@ class Backup:
                                             params={"url": self.url_photo,
                                                     "path": f"disk:/course_paper/{self.name_photo['file_name']}.jpg"},
                                             headers=headers)
-
-            with open("info_photo.json", "r", encoding="utf-8") as file:
-                data = json.load(file)
-                data.append({"file_name": f"{self.name_photo['file_name']}.jpg", "size": self.name_photo["size"]})
-
-                with open("info_photo.json", "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=4, ensure_ascii=False)
+            self.completion_json_file()
 
 
 if __name__ == "__main__":
